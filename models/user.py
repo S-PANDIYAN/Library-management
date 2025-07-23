@@ -1,4 +1,5 @@
-from db import get_connection
+from models.db import get_connection
+
 
 class User:
     def __init__(self, user_id, name, user_type):

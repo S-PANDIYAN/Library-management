@@ -1,5 +1,5 @@
 from interface import LibraryInterface
-from db import get_connection
+from models.db import get_connection
 
 class Library(LibraryInterface):
     def add_book(self, book):

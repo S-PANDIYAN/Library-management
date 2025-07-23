@@ -1,7 +1,8 @@
-from library import Library
-from user import Student, Staff
-from book import Book
-from db import setup_database
+from controllers.library import Library
+from models.user import Student, Staff
+from models.book import Book
+from models.db import setup_database
+from views import cli_view
 
 def main():
     setup_database()
@@ -12,41 +13,29 @@ def main():
     lib.add_user(Staff(2, "Dr. Bob"))
 
     while True:
-        print("\n--- College Library Menu ---")
-        print("1. Add Book")
-        print("2. View Available Books")
-        print("3. Issue Book")
-        print("4. Return Book")
-        print("5. Exit")
-
-        choice = input("Enter choice: ")
+        cli_view.show_menu()
+        choice = cli_view.get_menu_choice()
 
         if choice == '1':
-            title = input("Book Title: ")
-            author = input("Author: ")
+            title, author = cli_view.get_book_details()
             lib.add_book(Book(title, author))
-            print("Book added.")
+            cli_view.show_message("Book added.")
         elif choice == '2':
             books = Book.get_available_books()
-            if books:
-                print("Available Books:")
-                for b in books:
-                    print(f"ID: {b[0]}, Title: {b[1]}, Author: {b[2]}")
-            else:
-                print("No books available.")
+            cli_view.show_available_books(books)
         elif choice == '3':
-            title = input("Book to issue: ")
-            user_id = int(input("User ID: "))
+            title = cli_view.get_book_title()
+            user_id = cli_view.get_user_id()
             lib.issue_book(title, user_id)
         elif choice == '4':
-            title = input("Book to return: ")
-            user_id = int(input("User ID: "))
+            title = cli_view.get_book_title()
+            user_id = cli_view.get_user_id()
             lib.return_book(title, user_id)
         elif choice == '5':
-            print("Exiting...")
+            cli_view.show_message("Exiting...")
             break
         else:
-            print("Invalid choice.")
+            cli_view.show_message("Invalid choice.")
 
 if __name__ == "__main__":
     main()
