@@ -1,10 +1,7 @@
 # Testing and Code Quality
-pytest>=7.0.0
-pytest-cov>=4.1.0
-flake8>=6.0.0
+pytest==7.4.3
+pytest-cov==4.1.0
+flake8==7.0.0
 
 # Core Dependencies
-click>=8.0.0  # for CLI interface
-
-# Database
-SQLAlchemy>=2.0.0  # SQL toolkit and ORM
+click==8.1.7  # for CLI interface

@@ -1,6 +1,9 @@
 import sqlite3
+import os
 
 def get_connection():
+    # Ensure data directory exists
+    os.makedirs("data", exist_ok=True)
     return sqlite3.connect("data/library.db")
 
 def setup_database():
