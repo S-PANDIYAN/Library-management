@@ -5,3 +5,6 @@ flake8>=6.0.0
 
 # Core Dependencies
 click>=8.0.0  # for CLI interface
+
+# Database
+SQLAlchemy>=2.0.0  # SQL toolkit and ORM
