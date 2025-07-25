@@ -1,9 +1,10 @@
 """Database configuration and setup for the library management system"""
+
 import sqlite3
-import os
 from pathlib import Path
 from .book import Book
 from .user import User
+
 
 def get_connection():
     """Get a connection to the SQLite database"""
@@ -15,6 +16,7 @@ def get_connection():
     # Connect to database
     return sqlite3.connect(str(data_dir / "library.db"))
 
+
 def setup_database():
     """Initialize the database with required tables"""
     conn = get_connection()
@@ -25,7 +27,8 @@ def setup_database():
     User.create_table(cursor)
 
     # Create issued books table
-    cursor.execute('''
+    cursor.execute(
+        """
     CREATE TABLE IF NOT EXISTS issued_books (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -35,7 +38,8 @@ def setup_database():
         FOREIGN KEY(user_id) REFERENCES users(id),
         FOREIGN KEY(book_id) REFERENCES books(id)
     )
-    ''')
+    """
+    )
 
     conn.commit()
     conn.close()
