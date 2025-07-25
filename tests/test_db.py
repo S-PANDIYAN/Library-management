@@ -1,82 +1,91 @@
+"""Test suite for database operations"""
 import pytest
 import os
+from pathlib import Path
 import sqlite3
 from src.models.db import setup_database, get_connection
+from src.models.book import Book
+from src.models.user import User
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def test_db():
-    # Use an in-memory database for testing
+    """Fixture to create a test database in memory"""
     conn = sqlite3.connect(':memory:')
     cursor = conn.cursor()
     
-    # Create test tables
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS books (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT,
-        author TEXT,
-        is_issued INTEGER DEFAULT 0
-    )
-    ''')
+    # Create tables using model classes
+    Book.create_table(cursor)
+    User.create_table(cursor)
     
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY,
-        name TEXT,
-        type TEXT
-    )
-    ''')
-    
+    # Create issued_books table
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS issued_books (
-        user_id INTEGER,
-        book_id INTEGER,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        book_id INTEGER NOT NULL,
+        issue_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        return_date TIMESTAMP,
         FOREIGN KEY(user_id) REFERENCES users(id),
         FOREIGN KEY(book_id) REFERENCES books(id)
     )
     ''')
     
     conn.commit()
-    return conn
+    yield conn
+    conn.close()
 
-def test_database_creation():
-    # Remove test database if it exists
-    if os.path.exists("data/library.db"):
-        os.remove("data/library.db")
+def test_database_creation(tmp_path):
+    """Test database creation and table setup"""
+    # Setup a temporary data directory
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
     
     # Run the database setup
     setup_database()
     
-    # Check if database file was created
-    assert os.path.exists("data/library.db")
-    
-    # Check if tables were created
+    # Connect to the database and check tables
     conn = get_connection()
     cursor = conn.cursor()
     
     # Get list of tables
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-    tables = cursor.fetchall()
-    table_names = [table[0] for table in tables]
+    tables = {table[0] for table in cursor.fetchall()}
     
-    assert 'books' in table_names
-    assert 'users' in table_names
-    assert 'issued_books' in table_names
+    # Verify all required tables exist
+    assert 'books' in tables
+    assert 'users' in tables
+    assert 'issued_books' in tables
     
     conn.close()
 
-def test_database_connection(test_db):
-    # Test if we can insert and retrieve data
+def test_book_operations(test_db):
+    """Test book table operations"""
     cursor = test_db.cursor()
     
-    # Insert test data
-    cursor.execute("INSERT INTO books (title, author) VALUES (?, ?)", 
-                  ("Test Book", "Test Author"))
+    # Insert a test book
+    cursor.execute(
+        "INSERT INTO books (title, author, is_issued) VALUES (?, ?, ?)",
+        ("Test Book", "Test Author", 0)
+    )
     test_db.commit()
     
-    # Retrieve test data
-    cursor.execute("SELECT title, author FROM books WHERE id = 1")
+    # Verify the book was inserted
+    cursor.execute("SELECT title, author, is_issued FROM books WHERE id = 1")
     book = cursor.fetchone()
+    assert book == ("Test Book", "Test Author", 0)
+
+def test_user_operations(test_db):
+    """Test user table operations"""
+    cursor = test_db.cursor()
     
-    assert book[0] == "Test Book"
-    assert book[1] == "Test Author"
+    # Insert a test user
+    cursor.execute(
+        "INSERT INTO users (name, type) VALUES (?, ?)",
+        ("Test User", "student")
+    )
+    test_db.commit()
+    
+    # Verify the user was inserted
+    cursor.execute("SELECT name, type FROM users WHERE id = 1")
+    user = cursor.fetchone()
+    assert user == ("Test User", "student")

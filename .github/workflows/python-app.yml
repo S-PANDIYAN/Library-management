@@ -9,9 +9,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
     strategy:
       matrix:
-        python-version: ['3.11']  # Simplify to one version first
+        python-version: ['3.11']
       fail-fast: false
 
     steps:
