@@ -1,3 +1,3 @@
-# Explicit imports — adjust these to match what's actually used
-from .controllers import controller_module  # replace with actual module
-from .views import cli_view  # or whichever views are used
+from .models import book, db, user
+# from .controllers import controller_module  # ❌ comment or remove
+# from .views import cli_view                # ❌ comment or remove
