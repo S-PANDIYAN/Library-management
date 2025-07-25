@@ -1,0 +1,54 @@
+name: Library CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Cache pip
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Check code structure
+      run: |
+        if [ ! -f "src/models/db.py" ]; then
+          echo "Error: src/models/db.py not found"
+          exit 1
+        fi
+        if [ ! -f "tests/test_db.py" ]; then
+          echo "Error: tests/test_db.py not found"
+          exit 1
+
+    - name: Lint with flake8 (critical errors)
+      run: |
+        flake8 src tests --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    - name: Lint with flake8 (style checks)
+      run: |
+        flake8 src tests --max-line-length=127 --exit-zero --statistics
+
+    - name: Run tests
+      run: |
+        PYTHONPATH=$PWD pytest tests/ -v
